@@ -10,7 +10,10 @@
 #include "kiss_fft/kiss_fft.h"
 #include "gist/Gist.h"
 #include "audio_feature.h"
+#include <thread>
+#include <mutex>
 
+using namespace std;
 #define PI 3.141592653589793238463
 
 // Declare JNI function
@@ -26,6 +29,7 @@ Java_com_ece420_lab3_MainActivity_getFftBuffer(JNIEnv *env, jclass, jobject buff
 #define FFT_SIZE (INPUT_FRAME_SIZE * ZP_FACTOR)
 
 #define CHUNK_BUFFER_SIZE (CHUNK_SIZE*2)
+#define VOICED_THRESHOLD 20000000
 
 float chunkBuf[CHUNK_BUFFER_SIZE] = {};
 int inBufIdx = 0;
@@ -35,7 +39,33 @@ float fftOut[FFT_SIZE] = {};
 bool isWritingFft = false;
 
 
+//mutex processing_mutex;
+
+float feature[N_FEATURE];
+vector<float> chunk;
 vector<float> audio((unsigned) CHUNK_SIZE * 2, 0.0f);
+
+bool finish_process = false;
+
+thread t_processing_feature;
+
+void process_feature() {
+
+//    processing_mutex.lock();
+    get_feature(chunk, feature);
+    finish_process = true;
+//    processing_mutex.unlock();
+
+}
+
+bool is_voiced(float buffer[]) {
+    float totalPower = 0;
+    for (int i = 0; i < CHUNK_HOP_SIZE; i++) {
+        totalPower += buffer[i] * buffer[i] / CHUNK_HOP_SIZE;
+    }
+    LOGD("----------total power: %f / %d, %d-------------------", totalPower, VOICED_THRESHOLD, CHUNK_HOP_SIZE);
+    return totalPower > VOICED_THRESHOLD;
+}
 
 void ece420ProcessFrame(sample_buf *dataBuf) {
     isWritingFft = false;
@@ -44,13 +74,13 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     struct timeval start;
     struct timeval end;
 
-    kiss_fft_cpx fftBufIn[FFT_SIZE] = {};
-    kiss_fft_cpx fftBufOut[FFT_SIZE] = {};
+//    kiss_fft_cpx fftBufIn[FFT_SIZE] = {};
+//    kiss_fft_cpx fftBufOut[FFT_SIZE] = {};
 
     gettimeofday(&start, NULL);
 
-    float maxval;
-    float minval;
+//    float maxval;
+//    float minval;
 
     // Data is encoded in signed PCM-16, little-endian, mono channel
     float bufferIn[INPUT_FRAME_SIZE];
@@ -69,25 +99,56 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     }
     inBufIdx %= INPUT_FRAME_SIZE;
 
-    vector<float> chunk;
-    chunk.clear();
-    float feature[N_FEATURE];
-    memset(feature, 0, N_FEATURE * sizeof(float));
 
-    if ((chunkBufIdxEnd + CHUNK_BUFFER_SIZE - chunkBufIdxStart) % CHUNK_BUFFER_SIZE > CHUNK_SIZE) {
-        for (int i = 0; i < CHUNK_SIZE; i++) {
-            chunk.push_back(chunkBuf[(chunkBufIdxStart + i) % CHUNK_BUFFER_SIZE]);
-        }
-        chunkBufIdxStart = (chunkBufIdxStart + CHUNK_SIZE) % CHUNK_BUFFER_SIZE;
-        get_feature(chunk, feature);
+    if (finish_process) {
         vector<float> feature_vec(feature, feature + N_FEATURE);
         for (int i = 0; i < N_FEATURE; i++) {
             LOGD("feature vector %d: %f", i, feature_vec[i]);
         }
+        t_processing_feature.join();
+        finish_process = false;
 
     }
 
+//    this_thread::get_id();
 
+    if ((chunkBufIdxEnd + CHUNK_BUFFER_SIZE - chunkBufIdxStart) % CHUNK_BUFFER_SIZE > CHUNK_SIZE) {
+        // get enough data
+        chunk.clear();
+        memset(feature, 0, N_FEATURE * sizeof(float));
+
+        for (int i = 0; i < CHUNK_SIZE; i++) {
+            chunk.push_back(chunkBuf[(chunkBufIdxStart + i) % CHUNK_BUFFER_SIZE]);
+        }
+        chunkBufIdxStart = (chunkBufIdxStart + CHUNK_HOP_SIZE) % CHUNK_BUFFER_SIZE;
+//        get_feature(chunk, feature);
+        // start a thread processing feature
+        if (!finish_process) {
+            if (is_voiced(chunk.data())) {
+                LOGD("-----------Voiciced-----------");
+                t_processing_feature = thread(process_feature);
+            } else {
+                LOGD("-----------Unvoiced-----------");
+            }
+        }
+
+
+
+
+
+
+    }
+
+//    processing_mutex.lock();
+//    LOGD("get lock%d\n", processing_mutex.try_lock());
+//    LOGD("get lock%d\n", processing_mutex.try_lock());
+//    bool get_lock = processing_mutex.try_lock();
+//    if (! get_lock) {
+//        LOGD("get lock%d\n", get_lock);
+//        processing_mutex.unlock();
+//    } else {
+//        LOGD("lock\n");
+//    }
 
 
 

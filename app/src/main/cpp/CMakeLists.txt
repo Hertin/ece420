@@ -19,6 +19,7 @@ add_library(
         gist/fft/WindowFunctions.cpp
         gist/pitch/Yin.cpp
         gist/Gist.cpp
+        audio_feature.cpp
 )
 
 # include libraries needed for hello-jni lib

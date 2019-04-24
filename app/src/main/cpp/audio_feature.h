@@ -13,11 +13,12 @@ using namespace std;
 #define FS 8000
 #define FRAME_DURATION 0.25 // [s]
 #define HOP_DURATION 0.1 // [s]
+#define CHUNK_HOP_DURATION 2 // [s]
 #define N_FEATURE_SINGLE 26
 #define N_FEATURE 52
 #define FRAME_SIZE (int(FRAME_DURATION * FS))
 #define CHUNK_SIZE (int(CHUNK_DURATION * FS))
-
+#define CHUNK_HOP_SIZE (int(CHUNK_HOP_DURATION * FS))
 
 void get_feature(vector<float> &audio, float feature[N_FEATURE]);
 

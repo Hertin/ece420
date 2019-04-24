@@ -35,10 +35,21 @@ void _get_feature(vector<float> &audio_frame, float feature[N_FEATURE_SINGLE]) {
     memcpy(&feature[13], mfcc.data(), mfcc.size() * sizeof(float));
 }
 
+void normalize_chunk(vector<float> &chunk) {
+    float* audio_data = chunk.data();
+    float max_val = *max_element(audio_data, audio_data+CHUNK_SIZE);
+    // printf("%f %d\n", max_val, max_element(audio_data+i*CHUNK_SIZE, audio_data+(i+1)*CHUNK_SIZE)-audio_data);
+    for (int ii = 0; ii < CHUNK_SIZE; ii ++) {
+        chunk[ii] = chunk[ii] / max_val;
+    }
+}
+
 void get_feature(vector<float> &audio, float feature[N_FEATURE]) {
     float feature_single[N_FEATURE_SINGLE];
     // printf("%s\n", "get_feature");
     // float feature[N_FEATURE];
+    normalize_chunk(audio);
+
     for (int i = 0; i < audio.size() / FRAME_SIZE; i++) {
         // printf("get_feature::%d\n", i);
         memset(feature_single, 0, N_FEATURE_SINGLE * sizeof(float));
@@ -81,11 +92,3 @@ void get_feature(vector<float> &audio, float feature[N_FEATURE]) {
 //
 //}
 
-//void normalize_chunk(vector<float> &chunk) {
-//    float* audio_data = chunk.data();
-//    float max_val = *max_element(audio_data, audio_data+CHUNK_SIZE);
-//    // printf("%f %d\n", max_val, max_element(audio_data+i*CHUNK_SIZE, audio_data+(i+1)*CHUNK_SIZE)-audio_data);
-//    for (int ii = 0; ii < CHUNK_SIZE; ii ++) {
-//        chunk[ii] = chunk[ii] / max_val;
-//    }
-//}
