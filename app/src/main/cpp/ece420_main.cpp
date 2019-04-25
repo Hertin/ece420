@@ -10,6 +10,7 @@
 #include "kiss_fft/kiss_fft.h"
 #include "gist/Gist.h"
 #include "audio_feature.h"
+#include "clf/2_inst_clf/2instclf.cpp"
 #include <thread>
 #include <mutex>
 
@@ -27,9 +28,9 @@ Java_com_ece420_lab3_MainActivity_getFftBuffer(JNIEnv *env, jclass, jobject buff
 #define DOWN_FACTOR 6
 #define ZP_FACTOR 2
 #define FFT_SIZE (INPUT_FRAME_SIZE * ZP_FACTOR)
-
+#define N_CLASS 2
 #define CHUNK_BUFFER_SIZE (CHUNK_SIZE*2)
-#define VOICED_THRESHOLD 20000000
+#define VOICED_THRESHOLD 2000000
 
 float chunkBuf[CHUNK_BUFFER_SIZE] = {};
 int inBufIdx = 0;
@@ -42,18 +43,29 @@ bool isWritingFft = false;
 //mutex processing_mutex;
 
 float feature[N_FEATURE];
+double feature_db[N_FEATURE];
+double output[TOTAL_CLASS];
 vector<float> chunk;
 vector<float> audio((unsigned) CHUNK_SIZE * 2, 0.0f);
 
 bool finish_process = false;
 
 thread t_processing_feature;
+MultioutputRegressor reg;
+
 
 void process_feature() {
 
 //    processing_mutex.lock();
     get_feature(chunk, feature);
+
+    for (int i = 0; i < N_FEATURE; i ++) {
+        feature_db[i] = feature[i];
+    }
+
+    reg.Predict(feature_db, N_CLASS, output);
     finish_process = true;
+
 //    processing_mutex.unlock();
 
 }
@@ -104,6 +116,9 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
         vector<float> feature_vec(feature, feature + N_FEATURE);
         for (int i = 0; i < N_FEATURE; i++) {
             LOGD("feature vector %d: %f", i, feature_vec[i]);
+        }
+        for (int i = 0; i < TOTAL_CLASS; i++) {
+            LOGD("%d th conf: %f", i, output[i]);
         }
         t_processing_feature.join();
         finish_process = false;
