@@ -14,4 +14,17 @@
     <string name="error_no_permission">"Error: Permission for RECORD_AUDIO was denied"</string>
 
     <string name="prompt_permission">"This sample needs RECORD_AUDIO permission"</string>
+
+    <string name="ask_input">"Specify the number of instruments"</string>
+    <string name="prediction">"Predicted Instruments and Confidence Level:"</string>
+
+
+
+    <string-array name="NumberofInstruments">
+        <item>Unknown</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
 </resources>

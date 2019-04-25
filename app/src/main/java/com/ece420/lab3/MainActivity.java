@@ -34,11 +34,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.nio.ByteBuffer;
@@ -46,6 +51,8 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Timer;
+
 
 
 public class MainActivity extends Activity
@@ -55,6 +62,20 @@ public class MainActivity extends Activity
     private static final int AUDIO_ECHO_REQUEST = 0;
     private static final int FRAME_SIZE = 1024;
     private static final int BITMAP_HEIGHT = 500;
+
+
+    //UI
+    TextView instrument_1, instrument_2, instrument_3,instrument_4, instrument_5, instrument_6;
+    TextView conf_1, conf_2, conf_3, conf_4, conf_5, conf_6;
+    int timer_ = 0;
+    double conf_1_val,conf_2_val,conf_3_val,conf_4_val,conf_5_val,conf_6_val;
+//    double confArray[5];
+    String inputnum;
+    Spinner s;
+    Boolean Started;
+    Button start_but;
+    Button end_but;
+    //UI
 
     /*
      * Loading our Libs
@@ -68,10 +89,6 @@ public class MainActivity extends Activity
     String nativeSampleBufSize;
     boolean supportRecording;
     Boolean isPlaying = false;
-    ImageView stftView;
-    Bitmap bitmap;
-    Canvas canvas;
-    Paint paint;
 
     /*
      * jni function implementations...
@@ -96,6 +113,7 @@ public class MainActivity extends Activity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
@@ -110,15 +128,6 @@ public class MainActivity extends Activity
             createSLEngine(Integer.parseInt(nativeSampleRate), FRAME_SIZE);
         }
 
-        // UI Variables and Setup
-        stftView = (ImageView) this.findViewById(R.id.stftView);
-        bitmap = Bitmap.createBitmap((FRAME_SIZE), BITMAP_HEIGHT, Bitmap.Config.ARGB_8888);
-        canvas = new Canvas(bitmap);
-        canvas.drawColor(Color.BLACK);
-        paint = new Paint();
-        paint.setColor(Color.GREEN);
-        paint.setStyle(Paint.Style.FILL);
-        stftView.setImageBitmap(bitmap);
         initializeStftBackgroundThread(10);
 
         // Copied from OnClick handler
@@ -130,7 +139,66 @@ public class MainActivity extends Activity
                     AUDIO_ECHO_REQUEST);
             return;
         }
-        startEcho();
+
+
+        s = (Spinner) findViewById(R.id.spin);
+        start_but = (Button) findViewById(R.id.button1);
+        end_but = (Button) findViewById(R.id.button2);
+
+
+
+        s.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(MainActivity.this, parent.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
+                inputnum = parent.getSelectedItem().toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        //modified UI
+        instrument_1 = (TextView) findViewById(R.id.instrument_1);
+        instrument_2 = (TextView) findViewById(R.id.instrument_2);
+        instrument_3 = (TextView) findViewById(R.id.instrument_3);
+        instrument_4 = (TextView) findViewById(R.id.instrument_4);
+        instrument_5 = (TextView) findViewById(R.id.instrument_5);
+        instrument_6 = (TextView) findViewById(R.id.instrument_6);
+        conf_1 = (TextView) findViewById(R.id.conf_1);
+        conf_2 = (TextView) findViewById(R.id.conf_2);
+        conf_3 = (TextView) findViewById(R.id.conf_3);
+        conf_4 = (TextView) findViewById(R.id.conf_4);
+        conf_5 = (TextView) findViewById(R.id.conf_5);
+        conf_6 = (TextView) findViewById(R.id.conf_6);
+
+
+        instrument_1.setText("Guitar");
+        instrument_2.setText("Drumset");
+        instrument_3.setText("Violin");
+        instrument_4.setText("Piano");
+        instrument_5.setText("Bass");
+        instrument_6.setText("Unvoice");
+
+
+
+        conf_1.setText(""+conf_1_val);
+        conf_2.setText(""+conf_2_val);
+        conf_3.setText(""+conf_3_val);
+        conf_4.setText(""+conf_4_val);
+        conf_5.setText(""+conf_5_val);
+        conf_6.setText(""+conf_6_val);
+
+
+//        display();
+
+
+
+        //modified UI
+
+//        startEcho();
 
     }
 
@@ -199,7 +267,7 @@ public class MainActivity extends Activity
                     AUDIO_ECHO_REQUEST);
             return;
         }
-        startEcho();
+//        startEcho();
     }
 
     public void getLowLatencyParameters(View view) {
@@ -260,7 +328,7 @@ public class MainActivity extends Activity
          */
 
         // The callback runs on app's thread, so we are safe to resume the action
-        startEcho();
+//        startEcho();
     }
 
     // All this does is calls the UpdateStftTask at a fixed interval
@@ -290,7 +358,6 @@ public class MainActivity extends Activity
     private class UpdateStftTask extends AsyncTask<Void, FloatBuffer, Void> {
         @Override
         protected Void doInBackground(Void... params) {
-
             // Float == 4 bytes
             // Note: We're using FloatBuffer instead of float array because interfacing with JNI
             // with a FloatBuffer allows direct memory sharing, versus having to copy to some
@@ -302,52 +369,49 @@ public class MainActivity extends Activity
 
             getFftBuffer(buffer);
 
+
             // Update screen, needs to be done on UI thread
             publishProgress(buffer);
 
             return null;
         }
 
+
         protected void onProgressUpdate(FloatBuffer... newDisplayUpdate) {
-            int r, g, b;
 
-            // emulates a scrolling window
-            Rect srcRect = new Rect(0, -(-1), bitmap.getWidth(), bitmap.getHeight());
-            Rect destRect = new Rect(srcRect);
-            destRect.offset(0, -1);
-            canvas.drawBitmap(bitmap, srcRect, destRect, null);
 
-            // update latest column with new values which need to be between 0.0 and 1.0
-            for (int i = 0; i < newDisplayUpdate[0].capacity(); i++) {
-                double val = newDisplayUpdate[0].get();
+//            FloatBuffer[0]
 
-                // simple linear RYGCB colormap
-                if (val <= 0.25) {
-                    r = 0;
-                    b = 255;
-                    g = (int) (4 * val * 255);
-                } else if (val <= 0.5) {
-                    r = 0;
-                    g = 255;
-                    b = (int) ((1 - 4 * (val - 0.25)) * 255);
-                } else if (val <= 0.75) {
-                    g = 255;
-                    b = 0;
-                    r = (int) (4 * (val - 0.5) * 255);
-                } else {
-                    r = 255;
-                    b = 0;
-                    g = (int) ((1 - 4 * (val - 0.75)) * 255);
+            FloatBuffer temp = ByteBuffer.allocateDirect(FRAME_SIZE * 4).order(ByteOrder.LITTLE_ENDIAN)
+                    .asFloatBuffer();
+
+
+            temp.put(0,0.15f);
+            temp.put(1,0.34f);
+            temp.put(2,0.53f);
+            temp.put(3,0.67f);
+            temp.put(4,0.11f);
+            temp.put(5,0.92f);
+            temp.put(6,0.02f);
+
+
+            timer_ = timer_+1;
+
+
+            if(timer_%200 == 0){
+                if(temp.get(0) > 0){ //if the first value is positive, update
+                    conf_1.setText(""+temp.get(1));
+                    conf_2.setText(""+temp.get(2));
+                    conf_3.setText(""+temp.get(3));
+                    conf_4.setText(""+temp.get(4));
+                    conf_5.setText(""+temp.get(5));
+                    conf_6.setText(""+temp.get(6));
+
                 }
-
-                // set color with constant alpha
-                paint.setColor(Color.argb(255, r, g, b));
-                // paint corresponding area
-                canvas.drawRect(i, BITMAP_HEIGHT - 1, i + 1, BITMAP_HEIGHT, paint);
             }
 
-            newDisplayUpdate[0].rewind();
-            stftView.invalidate();
+
         }
+
     }
 }
