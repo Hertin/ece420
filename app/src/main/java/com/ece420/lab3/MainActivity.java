@@ -180,7 +180,7 @@ public class MainActivity extends Activity
         instrument_3.setText("Bass");
         instrument_4.setText("Piano");
         instrument_5.setText("Violin");
-        instrument_6.setText("Unvoice");
+        instrument_6.setText("Voiced");
 
 
         conf_1.setText(""+conf_1_val);
@@ -407,20 +407,22 @@ public class MainActivity extends Activity
 //
 //            }
 //            if(timer_%200 == 0){
-            conf_1.setText(""+0.0);
-            conf_2.setText(""+newDisplayUpdate[0].get(2));
-            conf_3.setText(""+0.0);
-            conf_4.setText(""+newDisplayUpdate[0].get(3));
-            conf_5.setText(""+newDisplayUpdate[0].get(4));
+            conf_1.setText(""+newDisplayUpdate[0].get(2));
+            conf_2.setText(""+newDisplayUpdate[0].get(3));
+            conf_3.setText(""+newDisplayUpdate[0].get(4));
+            conf_4.setText(""+newDisplayUpdate[0].get(5));
+            conf_5.setText(""+newDisplayUpdate[0].get(6));
             conf_6.setText(""+newDisplayUpdate[0].get(1));
 
-//            if(newDisplayUpdate[0].get(2) > 0.5){
-//                SpannableString str = new SpannableString("Guitar");
-//                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
-//                instrument_1.setText(str);
-//            }
-
             if(newDisplayUpdate[0].get(2) > 0.5){
+                SpannableString str = new SpannableString("Guitar");
+                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
+                instrument_1.setText(str);
+            }else{
+                instrument_1.setText("Guitar");
+            }
+
+            if(newDisplayUpdate[0].get(3) > 0.5){
                 SpannableString str = new SpannableString("Drumset");
                 str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 7,0);
                 instrument_2.setText(str);
@@ -428,15 +430,15 @@ public class MainActivity extends Activity
                 instrument_2.setText("Drumset");
             }
 
-//            if(newDisplayUpdate[0].get(4) > 0.5){
-//                SpannableString str = new SpannableString("Bass");
-//                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 4,0);
-//                instrument_3.setText(str);
-//            }else{
-//                instrument_3.setText("Bass");
-//            }
+            if(newDisplayUpdate[0].get(4) > 0.5){
+                SpannableString str = new SpannableString("Bass");
+                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 4,0);
+                instrument_3.setText(str);
+            }else{
+                instrument_3.setText("Bass");
+            }
 
-            if(newDisplayUpdate[0].get(3) > 0.5){
+            if(newDisplayUpdate[0].get(5) > 0.5){
                 SpannableString str = new SpannableString("Piano");
                 str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 5,0);
                 instrument_4.setText(str);
@@ -444,7 +446,7 @@ public class MainActivity extends Activity
                 instrument_4.setText("Piano");
             }
 
-            if(newDisplayUpdate[0].get(4) > 0.5){
+            if(newDisplayUpdate[0].get(6) > 0.5){
                 SpannableString str = new SpannableString("Violin");
                 str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
                 instrument_5.setText(str);
@@ -453,11 +455,11 @@ public class MainActivity extends Activity
             }
 
             if(newDisplayUpdate[0].get(1) > 0.5){
-                SpannableString str = new SpannableString("Unvoiced");
-                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 8,0);
+                SpannableString str = new SpannableString("Voiced");
+                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
                 instrument_6.setText(str);
             }else{
-                instrument_6.setText("Unvoiced");
+                instrument_6.setText("Voiced");
             }
 
 
