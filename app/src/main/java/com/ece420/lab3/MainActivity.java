@@ -177,9 +177,9 @@ public class MainActivity extends Activity
 
         instrument_1.setText("Guitar");
         instrument_2.setText("Drumset");
-        instrument_3.setText("Violin");
+        instrument_3.setText("Bass");
         instrument_4.setText("Piano");
-        instrument_5.setText("Bass");
+        instrument_5.setText("Violin");
         instrument_6.setText("Unvoice");
 
 
@@ -198,7 +198,7 @@ public class MainActivity extends Activity
 
         //modified UI
 
-//        startEcho();
+        startEcho();
 
     }
 
@@ -267,7 +267,7 @@ public class MainActivity extends Activity
                     AUDIO_ECHO_REQUEST);
             return;
         }
-//        startEcho();
+        startEcho();
     }
 
     public void getLowLatencyParameters(View view) {
@@ -382,33 +382,40 @@ public class MainActivity extends Activity
 
 //            FloatBuffer[0]
 
-            FloatBuffer temp = ByteBuffer.allocateDirect(FRAME_SIZE * 4).order(ByteOrder.LITTLE_ENDIAN)
-                    .asFloatBuffer();
+//            FloatBuffer temp = ByteBuffer.allocateDirect(FRAME_SIZE * 4).order(ByteOrder.LITTLE_ENDIAN)
+//                    .asFloatBuffer();
 
 
-            temp.put(0,0.15f);
-            temp.put(1,0.34f);
-            temp.put(2,0.53f);
-            temp.put(3,0.67f);
-            temp.put(4,0.11f);
-            temp.put(5,0.92f);
-            temp.put(6,0.02f);
+//            temp.put(0,0.15f);
+//            temp.put(1,0.34f);
+//            temp.put(2,0.53f);
+//            temp.put(3,0.67f);
+//            temp.put(4,0.11f);
+//            temp.put(5,0.92f);
+//            temp.put(6,0.02f);
 
 
             timer_ = timer_+1;
 
 
-            if(timer_%200 == 0){
-                if(temp.get(0) > 0){ //if the first value is positive, update
-                    conf_1.setText(""+temp.get(1));
-                    conf_2.setText(""+temp.get(2));
-                    conf_3.setText(""+temp.get(3));
-                    conf_4.setText(""+temp.get(4));
-                    conf_5.setText(""+temp.get(5));
-                    conf_6.setText(""+temp.get(6));
-
-                }
-            }
+//
+//            if(newDisplayUpdate[0].get(0) > 0){ //if the first value is positive, update
+//                conf_1.setText(""+newDisplayUpdate[0].get(1));
+//                conf_2.setText(""+newDisplayUpdate[0].get(2));
+//                conf_3.setText(""+newDisplayUpdate[0].get(3));
+//                conf_4.setText(""+newDisplayUpdate[0].get(4));
+//                conf_5.setText(""+newDisplayUpdate[0].get(5));
+//                conf_6.setText(""+newDisplayUpdate[0].get(6));
+//
+//            }
+//            if(timer_%200 == 0){
+            conf_1.setText(""+0.0);
+            conf_2.setText(""+newDisplayUpdate[0].get(2));
+            conf_3.setText(""+0.0);
+            conf_4.setText(""+newDisplayUpdate[0].get(3));
+            conf_5.setText(""+newDisplayUpdate[0].get(4));
+            conf_6.setText(""+newDisplayUpdate[0].get(1));
+//            }
 
 
         }

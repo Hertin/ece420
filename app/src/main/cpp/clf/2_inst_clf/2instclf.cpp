@@ -48,6 +48,7 @@ public:
         }
 
         sigmoid(Sigmoid, TOTAL_CLASS);
+
         for (int i = 0; i < TOTAL_CLASS; i++) {
             result[i] = Sigmoid[i];
         }

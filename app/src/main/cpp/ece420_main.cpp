@@ -9,8 +9,9 @@
 #include "ece420_lib.h"
 #include "kiss_fft/kiss_fft.h"
 #include "gist/Gist.h"
-#include "audio_feature.h"
-#include "clf/2_inst_clf/2instclf.cpp"
+
+//#include "clf/2_inst_clf/2instclf.cpp"
+#include "clf/2_inst_rfc/2instrfc.h"
 #include <thread>
 #include <mutex>
 
@@ -30,25 +31,141 @@ Java_com_ece420_lab3_MainActivity_getFftBuffer(JNIEnv *env, jclass, jobject buff
 #define FFT_SIZE (INPUT_FRAME_SIZE * ZP_FACTOR)
 #define N_CLASS 2
 #define CHUNK_BUFFER_SIZE (CHUNK_SIZE*2)
-#define VOICED_THRESHOLD 2000000
+//#define VOICED_THRESHOLD 2000000
+#define VOICED_THRESHOLD 200000
+#include "audio_feature.h"
 
+//float ft_mean[N_FEATURE] = {
+//        5875.915480018374f,
+//        24.888751722553973f,
+//        548780.4501607717f,
+//        0.7406592940758497f,
+//        59.237730391593935f,
+//        0.2270759438833185f,
+//        188.08917087735415f,
+//        269.48199931097844f,
+//        2005.9232889297198f,
+//        0.6097052122509474f,
+//        153.468879191548f,
+//        0.21208635995187614f,
+//        196.27135966926963f,
+//        160.796293638034f,
+//        32.83346491731741f,
+//        10.215241193442811f,
+//        6.813634463280891f,
+//        2.9382681962706707f,
+//        1.1891982184126666f,
+//        0.18286322057931642f,
+//        0.6120686213467501f,
+//        -0.514157969413901f,
+//        -0.6143738830314079f,
+//        -0.6544733919240928f,
+//        -0.3550900348458314f,
+//        -0.2731689116688677f,
+//        1888518.5852090032f,
+//        2163.6541111621495f,
+//        32602126547.66743f,
+//        0.044151670625026916f,
+//        1140.6649058337161f,
+//        0.0035358677777775284f,
+//        1302.5924437299036f,
+//        13402.914101975195f,
+//        308899.8364722095f,
+//        0.00432054460952191f,
+//        8145.52503445108f,
+//        0.0042076233498919815f,
+//        4736.359209921911f,
+//        312.9292317409279f,
+//        35.789694103123566f,
+//        22.064482731396417f,
+//        10.857391371440055f,
+//        9.58001711788011f,
+//        7.891895383555352f,
+//        6.4144240569017f,
+//        5.445308462764125f,
+//        4.534787964371842f,
+//        3.8422665401067984f,
+//        3.3288124515531696f,
+//        2.8299767455213596f,
+//        2.6095109202744604f
+//};
+//
+//float ft_std[N_FEATURE] = {
+//        1490.4163847730606f,
+//        15.203028648204443f,
+//        274602.32028153003f,
+//        0.14988524497859182f,
+//        27.200962004759592f,
+//        0.08237936033013143f,
+//        64.59690969533682f,
+//        125.04255135128001f,
+//        530.6328768555526f,
+//        0.08507377705791513f,
+//        100.19372836223333f,
+//        0.12675425284961156f,
+//        118.018114671541f,
+//        25.879284490160394f,
+//        10.811659234494584f,
+//        9.847892156163855f,
+//        5.575357728437596f,
+//        4.572859616745619f,
+//        3.32871567046985f,
+//        2.659215371420969f,
+//        2.1180739007652174f,
+//        1.8892478656299907f,
+//        1.7191430769445422f,
+//        1.4885449113358873f,
+//        1.357393728280013f,
+//        1.2314538312552297f,
+//        1477533.7569558267f,
+//        3091.8457270698354f,
+//        48252919700.15319f,
+//        0.034092299259060654f,
+//        1567.5909861950597f,
+//        0.0037133392360315723f,
+//        1481.045829810813f,
+//        13268.411811516855f,
+//        229642.87153752454f,
+//        0.00471619459609176f,
+//        12380.042649361108f,
+//        0.005658926284430596f,
+//        8903.774929769957f,
+//        360.00426429766077f,
+//        33.669774078889176f,
+//        20.640771372966995f,
+//        9.545146679558012f,
+//        9.499007323753295f,
+//        7.820170794717013f,
+//        7.702000781617661f,
+//        6.679236038745696f,
+//        5.968777801289147f,
+//        4.670703958063194f,
+//        4.0949076406196365f,
+//        3.2801299590439665f,
+//        3.438105997942527f
+//};
 float chunkBuf[CHUNK_BUFFER_SIZE] = {};
 int inBufIdx = 0;
 int chunkBufIdxStart = 0;
 int chunkBufIdxEnd = 0;
 float fftOut[FFT_SIZE] = {};
 bool isWritingFft = false;
-
+bool updated = false;
+bool is_voiced_prev = false;
+bool is_voiced_curr = false;
 
 //mutex processing_mutex;
 
 float feature[N_FEATURE];
-double feature_db[N_FEATURE];
-double output[TOTAL_CLASS];
+//double feature_db[N_FEATURE];
+//double output[TOTAL_CLASS];
+
+float output[TOTAL_CLASS];
 vector<float> chunk;
 vector<float> audio((unsigned) CHUNK_SIZE * 2, 0.0f);
 
 bool finish_process = false;
+float totalPower = 0;
 
 thread t_processing_feature;
 MultioutputRegressor reg;
@@ -59,19 +176,23 @@ void process_feature() {
 //    processing_mutex.lock();
     get_feature(chunk, feature);
 
-    for (int i = 0; i < N_FEATURE; i ++) {
-        feature_db[i] = feature[i];
-    }
-
-    reg.Predict(feature_db, N_CLASS, output);
+//    for (int i = 0; i < N_FEATURE; i ++) {
+//        feature_db[i] = (feature[i] - ft_mean[i]) / ft_std[i];
+//    }
+//    for (int i = 0; i < N_FEATURE; i++) {
+//        LOGD("feature vector %d: %f, %f", i, feature[i], feature_db[i]);
+//    }
+//    reg.Predict(feature_db, N_CLASS, output);
+    reg.Predict(feature, N_CLASS, output);
     finish_process = true;
-
+    updated = true;
+    is_voiced_curr = true;
 //    processing_mutex.unlock();
 
 }
 
 bool is_voiced(float buffer[]) {
-    float totalPower = 0;
+    totalPower = 0;
     for (int i = 0; i < CHUNK_HOP_SIZE; i++) {
         totalPower += buffer[i] * buffer[i] / CHUNK_HOP_SIZE;
     }
@@ -97,7 +218,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
     // Data is encoded in signed PCM-16, little-endian, mono channel
     float bufferIn[INPUT_FRAME_SIZE];
 
-
+    isWritingFft = true;
     for (int i = 0; i < INPUT_FRAME_SIZE; i++) {
         int16_t val =
                 ((uint16_t) dataBuf->buf_[2 * i]) | (((uint16_t) dataBuf->buf_[2 * i + 1]) << 8);
@@ -114,9 +235,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 
     if (finish_process) {
         vector<float> feature_vec(feature, feature + N_FEATURE);
-        for (int i = 0; i < N_FEATURE; i++) {
-            LOGD("feature vector %d: %f", i, feature_vec[i]);
-        }
+
         for (int i = 0; i < TOTAL_CLASS; i++) {
             LOGD("%d th conf: %f", i, output[i]);
         }
@@ -142,8 +261,11 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
             if (is_voiced(chunk.data())) {
                 LOGD("-----------Voiciced-----------");
                 t_processing_feature = thread(process_feature);
+
             } else {
                 LOGD("-----------Unvoiced-----------");
+                updated = is_voiced_prev;
+                is_voiced_curr = false;
             }
         }
 
@@ -215,7 +337,7 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 
 
     // thread-safe
-    isWritingFft = true;
+
     // Currently set everything to 0 or 1 so the spectrogram will just be blue and red stripped
 //    for (int i = 0; i < FRAME_SIZE; i++) {
 //        fftOut[i] = (i/20)%2;
@@ -283,6 +405,9 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
          ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 }
 
+#define UPDATED 0
+#define VOICED 1
+#define DATA 2
 
 // http://stackoverflow.com/questions/34168791/ndk-work-with-floatbuffer-as-parameter
 JNIEXPORT void JNICALL
@@ -291,7 +416,19 @@ Java_com_ece420_lab3_MainActivity_getFftBuffer(JNIEnv *env, jclass, jobject buff
     // thread-safe, kinda
     while (isWritingFft) {}
     // We will only fetch up to FRAME_SIZE data in fftOut[] to draw on to the screen
-    for (int i = 0; i < INPUT_FRAME_SIZE; i++) {
-        buffer[i] = fftOut[i];
+
+//    if (updated) {
+//        updated = false;
+//        buffer[UPDATED] = 1;
+//        buffer[VOICED] = is_voiced_curr ? 1 : -1;
+//
+//
+//    } else {
+//        buffer[UPDATED] = -1;
+//    }
+    buffer[VOICED] = totalPower / VOICED_THRESHOLD;
+    for (int i = 0; i < TOTAL_CLASS; i++) {
+        buffer[DATA+i] = (float) output[i];
     }
+
 }
