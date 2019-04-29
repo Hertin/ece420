@@ -180,7 +180,7 @@ public class MainActivity extends Activity
         instrument_3.setText("Bass");
         instrument_4.setText("Piano");
         instrument_5.setText("Violin");
-        instrument_6.setText("Unvoice");
+        instrument_6.setText("Voiced");
 
 
         conf_1.setText(""+conf_1_val);
@@ -455,11 +455,11 @@ public class MainActivity extends Activity
             }
 
             if(newDisplayUpdate[0].get(1) > 0.5){
-                SpannableString str = new SpannableString("Unvoiced");
-                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 8,0);
+                SpannableString str = new SpannableString("Voiced");
+                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
                 instrument_6.setText(str);
             }else{
-                instrument_6.setText("Unvoiced");
+                instrument_6.setText("Voiced");
             }
 
 
