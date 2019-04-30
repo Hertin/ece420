@@ -48,9 +48,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -377,7 +381,69 @@ public class MainActivity extends Activity
 
         protected void onProgressUpdate(FloatBuffer... newDisplayUpdate) {
 
+            FloatBuffer buffer = newDisplayUpdate[0];
+            TextView[] textViewsConf = {conf_1, conf_2, conf_3, conf_4 ,conf_5};
+            TextView[] textViewsInstr = {instrument_1, instrument_2, instrument_3,
+                    instrument_4, instrument_5};
+            String[] names = {"Guitar", "Drumset", "Bass", "Piano", "Violin"};
+            final Integer[] idx = {0, 1, 2, 3, 4};
+            float voiced = buffer.get(1);
+            final float[] conf_level = {0.f,0.f,0.f,0.f,0.f};
+            int n_instr = 5;
+            int n_selected = 0;
+            if (inputnum == null) return;
+            if (voiced < 1.) {
+                for (int i = 0; i < n_instr; i ++) {
+                    textViewsConf[i].setText("0.0");
+                    textViewsInstr[i].setText(names[i]);
+                }
+                conf_6.setText(String.format("%.2f", voiced));
 
+            } else {
+                for (int i = 0; i < n_instr; i ++) {
+                    conf_level[i] = buffer.get(2 + i);
+                    textViewsConf[i].setText(String.format("%.2f", conf_level[i]));
+                }
+                
+                SpannableString voice_level = new SpannableString(String.format("%.2f", voiced));
+                conf_6.setText(voice_level);
+
+                if (inputnum.equals("Unknown")) {
+                    for (int i = 0; i < n_instr; i ++) {
+                        String name = names[i];
+                        if (conf_level[i] > 0.5) {
+                            SpannableString str = new SpannableString(name);
+                            str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, name.length(),0);
+                            textViewsInstr[i].setText(str);
+                        } else {
+                            textViewsInstr[i].setText(name);
+                        }
+                    }
+                } else {
+                    n_selected = Integer.parseInt(inputnum);
+
+                    Arrays.sort(idx, new Comparator<Integer>(){
+                        @Override public int compare(final Integer o1, final Integer o2) {
+                            return Float.compare(conf_level[o2], conf_level[o1]);
+                        }}
+                    );
+                    int i = 0;
+                    for (; i < n_instr; i ++) {
+                        int ii = idx[i];
+                        String name = names[ii];
+                        SpannableString str = new SpannableString(name);
+                        if (i < n_selected){
+                            str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, name.length(),0);
+
+                            textViewsInstr[ii].setText(str);
+                        } else {
+                             textViewsInstr[ii].setText(name);
+                        }
+                    }
+
+                }
+
+            }
 //            FloatBuffer[0]
 
 //            FloatBuffer temp = ByteBuffer.allocateDirect(FRAME_SIZE * 4).order(ByteOrder.LITTLE_ENDIAN)
@@ -393,7 +459,7 @@ public class MainActivity extends Activity
 //            temp.put(6,0.02f);
 
 
-            timer_ = timer_+1;
+//            timer_ = timer_+1;
 
 
 //
@@ -407,60 +473,60 @@ public class MainActivity extends Activity
 //
 //            }
 //            if(timer_%200 == 0){
-            conf_1.setText(""+String.format("%.2f", newDisplayUpdate[0].get(2)));
-            conf_2.setText(""+String.format("%.2f", newDisplayUpdate[0].get(3)));
-            conf_3.setText(""+String.format("%.2f", newDisplayUpdate[0].get(4)));
-            conf_4.setText(""+String.format("%.2f", newDisplayUpdate[0].get(5)));
-            conf_5.setText(""+String.format("%.2f", newDisplayUpdate[0].get(6)));
-            conf_6.setText(""+newDisplayUpdate[0].get(1));
-
-            if(newDisplayUpdate[0].get(2) > 0.5){
-                SpannableString str = new SpannableString("Guitar");
-                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
-                instrument_1.setText(str);
-            }else{
-                instrument_1.setText("Guitar");
-            }
-
-            if(newDisplayUpdate[0].get(3) > 0.5){
-                SpannableString str = new SpannableString("Drumset");
-                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 7,0);
-                instrument_2.setText(str);
-            }else{
-                instrument_2.setText("Drumset");
-            }
-
-            if(newDisplayUpdate[0].get(4) > 0.5){
-                SpannableString str = new SpannableString("Bass");
-                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 4,0);
-                instrument_3.setText(str);
-            }else{
-                instrument_3.setText("Bass");
-            }
-
-            if(newDisplayUpdate[0].get(5) > 0.5){
-                SpannableString str = new SpannableString("Piano");
-                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 5,0);
-                instrument_4.setText(str);
-            }else{
-                instrument_4.setText("Piano");
-            }
-
-            if(newDisplayUpdate[0].get(6) > 0.5){
-                SpannableString str = new SpannableString("Violin");
-                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
-                instrument_5.setText(str);
-            }else{
-                instrument_5.setText("Violin");
-            }
-
-            if(newDisplayUpdate[0].get(1) > 0.5){
-                SpannableString str = new SpannableString("Voiced");
-                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
-                instrument_6.setText(str);
-            }else{
-                instrument_6.setText("Voiced");
-            }
+//            conf_1.setText(""+String.format("%.2f", newDisplayUpdate[0].get(2)));
+//            conf_2.setText(""+String.format("%.2f", newDisplayUpdate[0].get(3)));
+//            conf_3.setText(""+String.format("%.2f", newDisplayUpdate[0].get(4)));
+//            conf_4.setText(""+String.format("%.2f", newDisplayUpdate[0].get(5)));
+//            conf_5.setText(""+String.format("%.2f", newDisplayUpdate[0].get(6)));
+//            conf_6.setText(""+newDisplayUpdate[0].get(1));
+//
+//            if(newDisplayUpdate[0].get(2) > 0.5){
+//                SpannableString str = new SpannableString("Guitar");
+//                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
+//                instrument_1.setText(str);
+//            }else{
+//                instrument_1.setText("Guitar");
+//            }
+//
+//            if(newDisplayUpdate[0].get(3) > 0.5){
+//                SpannableString str = new SpannableString("Drumset");
+//                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 7,0);
+//                instrument_2.setText(str);
+//            }else{
+//                instrument_2.setText("Drumset");
+//            }
+//
+//            if(newDisplayUpdate[0].get(4) > 0.5){
+//                SpannableString str = new SpannableString("Bass");
+//                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 4,0);
+//                instrument_3.setText(str);
+//            }else{
+//                instrument_3.setText("Bass");
+//            }
+//
+//            if(newDisplayUpdate[0].get(5) > 0.5){
+//                SpannableString str = new SpannableString("Piano");
+//                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 5,0);
+//                instrument_4.setText(str);
+//            }else{
+//                instrument_4.setText("Piano");
+//            }
+//
+//            if(newDisplayUpdate[0].get(6) > 0.5){
+//                SpannableString str = new SpannableString("Violin");
+//                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
+//                instrument_5.setText(str);
+//            }else{
+//                instrument_5.setText("Violin");
+//            }
+//
+//            if(newDisplayUpdate[0].get(1) > 0.5){
+//                SpannableString str = new SpannableString("Voiced");
+//                str.setSpan(new BackgroundColorSpan(Color.YELLOW), 0, 6,0);
+//                instrument_6.setText(str);
+//            }else{
+//                instrument_6.setText("Voiced");
+//            }
 
 
 //            }

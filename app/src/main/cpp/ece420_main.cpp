@@ -32,7 +32,7 @@ Java_com_ece420_lab3_MainActivity_getFftBuffer(JNIEnv *env, jclass, jobject buff
 #define N_CLASS 2
 #define CHUNK_BUFFER_SIZE (CHUNK_SIZE*2)
 //#define VOICED_THRESHOLD 2000000
-#define VOICED_THRESHOLD 200000
+#define VOICED_THRESHOLD 1000000
 #include "audio_feature.h"
 
 //float ft_mean[N_FEATURE] = {
