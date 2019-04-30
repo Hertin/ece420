@@ -7,17 +7,21 @@
 #include "RFC_inst2_0.h"
 #include "RFC_inst2_1.h"
 #include "RFC_inst2_2.h"
+#include "RFC_inst2_3.h"
+#include "RFC_inst2_4.h"
 
-
-#define TOTAL_CLASS 3
+#define TOTAL_CLASS 5
 class MultioutputRegressor{
 public:
     //to get sigmod as confidence level form the regressor
     // double Sigmoid[TOTAL_CLASS];
     float Prediction[TOTAL_CLASS];
+
     RFC_inst2_0 clf0;
     RFC_inst2_1 clf1;
     RFC_inst2_2 clf2;
+    RFC_inst2_3 clf3;
+    RFC_inst2_4 clf4;
 
     MultioutputRegressor();
 

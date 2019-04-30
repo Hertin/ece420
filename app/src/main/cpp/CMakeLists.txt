@@ -24,6 +24,8 @@ add_library(
         clf/2_inst_rfc/RFC_inst2_0.cpp
         clf/2_inst_rfc/RFC_inst2_1.cpp
         clf/2_inst_rfc/RFC_inst2_2.cpp
+        clf/2_inst_rfc/RFC_inst2_3.cpp
+        clf/2_inst_rfc/RFC_inst2_4.cpp
 )
 
 # include libraries needed for hello-jni lib

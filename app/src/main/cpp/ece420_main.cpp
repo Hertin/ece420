@@ -429,6 +429,8 @@ Java_com_ece420_lab3_MainActivity_getFftBuffer(JNIEnv *env, jclass, jobject buff
     buffer[VOICED] = totalPower / VOICED_THRESHOLD;
     for (int i = 0; i < TOTAL_CLASS; i++) {
         buffer[DATA+i] = (float) output[i];
-    }
+//        buffer[DATA+i] = (float) 1;
 
+    }
+//    buffer[DATA+TOTAL_CLASS-1] = 1;
 }
