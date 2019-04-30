@@ -407,11 +407,11 @@ public class MainActivity extends Activity
 //
 //            }
 //            if(timer_%200 == 0){
-            conf_1.setText(""+newDisplayUpdate[0].get(2));
-            conf_2.setText(""+newDisplayUpdate[0].get(3));
-            conf_3.setText(""+newDisplayUpdate[0].get(4));
-            conf_4.setText(""+newDisplayUpdate[0].get(5));
-            conf_5.setText(""+newDisplayUpdate[0].get(6));
+            conf_1.setText(""+String.format("%.2f", newDisplayUpdate[0].get(2)));
+            conf_2.setText(""+String.format("%.2f", newDisplayUpdate[0].get(3)));
+            conf_3.setText(""+String.format("%.2f", newDisplayUpdate[0].get(4)));
+            conf_4.setText(""+String.format("%.2f", newDisplayUpdate[0].get(5)));
+            conf_5.setText(""+String.format("%.2f", newDisplayUpdate[0].get(6)));
             conf_6.setText(""+newDisplayUpdate[0].get(1));
 
             if(newDisplayUpdate[0].get(2) > 0.5){
